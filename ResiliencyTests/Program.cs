@@ -47,6 +47,18 @@ var builder = Host
             .Configure(x =>
             {
                 x.Hedging.MaxHedgedAttempts = hedgeUris.Length;
+
+                x.Hedging.OnHedging = args =>
+                {
+                    Console.WriteLine("!!!!! OnHedging triggered.");
+                    return default;
+                };
+                
+                x.Hedging.ActionGenerator = args =>
+                {
+                    Console.WriteLine("!!!!! ActionGenerator triggered."); // Does not seem to trigger
+                    return () => args.Callback(args.ActionContext);
+                };
             });
     });
 
