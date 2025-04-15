@@ -14,51 +14,27 @@ var builder = Host
             {
                 x.BaseAddress = new Uri("https://i-do-not-exist.io/aaaaaa/");
             });
-
-        string[] hedgeUris =
-        [
-            "https://nor-do-i.io/bbbbbb/",
-            "https://nor-i.io/cccccc/"
-        ];
         
         httpClientBuilder
             .AddStandardResilienceHandler();
-        
+
         httpClientBuilder
             .AddStandardHedgingHandler(strategyBuilder =>
             {
                 strategyBuilder.ConfigureOrderedGroups(x =>
                 {
-                    foreach (var uri in hedgeUris)
+                    x.Groups.Add(new UriEndpointGroup
                     {
-                        x.Groups.Add(new UriEndpointGroup
-                        {
-                            Endpoints = [
-                                new WeightedUriEndpoint
-                                {
-                                    Uri = new Uri(uri),
-                                    Weight = 1
-                                }
-                            ]
-                        });
-                    }
+                        Endpoints =
+                        [
+                            new WeightedUriEndpoint
+                            {
+                                Uri = new Uri("https://nor-do-i.io/bbbbbb/"),
+                                Weight = 1
+                            }
+                        ]
+                    });
                 });
-            })
-            .Configure(x =>
-            {
-                x.Hedging.MaxHedgedAttempts = hedgeUris.Length;
-
-                x.Hedging.OnHedging = args =>
-                {
-                    Console.WriteLine("!!!!! OnHedging triggered.");
-                    return default;
-                };
-                
-                x.Hedging.ActionGenerator = args =>
-                {
-                    Console.WriteLine("!!!!! ActionGenerator triggered."); // Does not seem to trigger
-                    return () => args.Callback(args.ActionContext);
-                };
             });
     });
 
@@ -68,8 +44,7 @@ var factory = host.Services.GetRequiredService<IHttpClientFactory>();
 var client = factory.CreateClient(nameof(ISomeApi));
 var request = new HttpRequestMessage(HttpMethod.Get, "some-endpoint");
 
-var response = await client.SendAsync(request);
-
+await client.SendAsync(request);
 
 host.Run();
 
