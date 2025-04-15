@@ -8,19 +8,19 @@ var builder = Host
     .CreateDefaultBuilder(args)
     .ConfigureServices(serviceCollection =>
     {
-
-        string[] uris =
-        [
-            "https://nor-do-i.io/bbbbbb/",
-            "https://nor-i.io/cccccc/"
-        ];
-    
+        
         var httpClientBuilder = serviceCollection
             .AddHttpClient<ISomeApi, SomeApi>(x =>
             {
                 x.BaseAddress = new Uri("https://i-do-not-exist.io/aaaaaa/");
             });
 
+        string[] hedgeUris =
+        [
+            "https://nor-do-i.io/bbbbbb/",
+            "https://nor-i.io/cccccc/"
+        ];
+        
         httpClientBuilder
             .AddStandardResilienceHandler();
         
@@ -29,7 +29,7 @@ var builder = Host
             {
                 strategyBuilder.ConfigureOrderedGroups(x =>
                 {
-                    foreach (var uri in uris)
+                    foreach (var uri in hedgeUris)
                     {
                         x.Groups.Add(new UriEndpointGroup
                         {
@@ -46,7 +46,7 @@ var builder = Host
             })
             .Configure(x =>
             {
-                x.Hedging.MaxHedgedAttempts = uris.Length;
+                x.Hedging.MaxHedgedAttempts = hedgeUris.Length;
             });
     });
 
